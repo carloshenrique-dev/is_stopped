@@ -1,0 +1,44 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'macos-latest'
+
+steps:
+    - task: FlutterInstall@0
+      inputs:
+        mode: 'auto'
+        channel: 'stable'
+        version: 'latest'
+
+    - script: |
+        flutter doctor
+      displayName: 'Flutter Doctor'
+
+    - task: Cache@2
+      inputs:
+        key: 'flutter | "$(Agent.OS)" | $(flutterVersion)'
+        path: '$(FLUTTER_HOME)'
+        cacheHitVar: FLUTTER_CACHE_HIT
+      displayName: Cache Flutter SDK
+    
+    - task: InstallAppleCertificate@2
+      inputs:
+        certSecureFile: 'ios_distribution_p12.p12'
+        certPwd: 'password'
+        keychain: 'temp'
+        keychainPassword: 'password'
+
+    - task: InstallAppleProvisioningProfile@1
+      inputs:
+        provisioningProfileLocation: 'secureFiles'
+        provProfileSecureFile: 'opere_app_store_provisioning_profile.mobileprovision'
+
+    - script: |
+        flutter pub get
+      displayName: 'Flutter Pub Get'
+      
+    - script: |
+        flutter build ios
+        xcodebuild -exportArchive -archivePath build/ios/iphoneos/Runner.xcarchive -exportOptionsPlist build/ios/iphoneos/ExportOptions.plist -exportPath . CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="iPhone Distribution" PROVISIONING_PROFILE="H93F57BRA4"
+      displayName: 'Archive'
