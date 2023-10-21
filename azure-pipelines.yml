@@ -21,6 +21,18 @@ steps:
         path: '$(FLUTTER_HOME)'
         cacheHitVar: FLUTTER_CACHE_HIT
       displayName: Cache Flutter SDK
+    
+    - task: InstallAppleCertificate@2
+      inputs:
+        certSecureFile: 'ios_distribution_p12.p12'
+        certPwd: 'password'
+        keychain: 'temp'
+        keychainPassword: 'password'
+
+    - task: InstallAppleProvisioningProfile@1
+      inputs:
+        provisioningProfileLocation: 'secureFiles'
+        provProfileSecureFile: 'opere_app_store_provisioning_profile.mobileprovision'
 
     - script: |
         flutter pub get
@@ -28,5 +40,5 @@ steps:
       
     - script: |
         flutter build ios
-        xcodebuild archive -workspace '**/ios/Runner.xcworkspace' -scheme 'Runner' -configuration 'Release' -sdk 'iphoneos' -archivePath './Runner.xcarchive' CODE_SIGN_STYLE='Manual' DEVELOPMENT_TEAM='YOUR_TEAM_ID' CODE_SIGN_IDENTITY='iPhone Distribution' PROVISIONING_PROFILE_SPECIFIER='H93F57BRA4'
+        xcodebuild -exportArchive -archivePath build/ios/iphoneos/Runner.xcarchive -exportOptionsPlist build/ios/iphoneos/ExportOptions.plist -exportPath . CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="iPhone Distribution" PROVISIONING_PROFILE="H93F57BRA4"
       displayName: 'Archive'
