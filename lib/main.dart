@@ -33,6 +33,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  bool isInMovement = false;
+
   @override
   void initState() {
     _determinePosition();
@@ -70,16 +72,26 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: const Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[],
+          children: <Widget>[
+            isInMovement ? const Text('IS IN MOVEMENT') : const Text('IS NOT IN MOVEMENT'),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Timer.periodic(const Duration(seconds: 1), (timer) async {
-            print(await MovementDetector().isMoving());
+            if (await MovementDetector().isMoving()) {
+              setState(() {
+                isInMovement = true;
+              });
+            } else {
+              setState(() {
+                isInMovement = false;
+              });
+            }
           });
         },
         tooltip: 'Increment',

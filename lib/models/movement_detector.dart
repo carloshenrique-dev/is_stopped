@@ -32,6 +32,11 @@ class MovementDetector {
     // Apply moving average filter to accelerometer data
     double avgAccAccelerometer = accEvents.map((a) => a.x + a.y + a.z).reduce((a, b) => a + b) / numMeasurements;
 
+    print(avgSpeed);
+    print(avgAccGPS);
+    print(avgAccAccelerometer);
+
+    //comparar se em condicoes normais as medidas de acelerometro e speed vindo do gps estao parecidos
     if ((avgSpeed > thresholdSpeed && avgAccGPS > thresholdAcc) || avgAccAccelerometer > thresholdAcc) {
       return true;
     } else {
