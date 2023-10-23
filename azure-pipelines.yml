@@ -40,5 +40,5 @@ steps:
       
     - script: |
         flutter build ios
-        xcodebuild -exportArchive -archivePath build/ios/iphoneos/Runner.xcarchive -exportOptionsPlist build/ios/iphoneos/ExportOptions.plist -exportPath . CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="iPhone Distribution" PROVISIONING_PROFILE="H93F57BRA4"
+        xcodebuild -exportArchive -archivePath build/ios/iphoneos/Runner.xcarchive -exportOptionsPlist ios/exportOptions.plist -exportPath . CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="iPhone Distribution" PROVISIONING_PROFILE="H93F57BRA4"
       displayName: 'Archive'
