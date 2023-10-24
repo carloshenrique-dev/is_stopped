@@ -44,10 +44,10 @@ class MovementDetector {
     //comparar se em condicoes normais as medidas de acelerometro e speed vindo do gps estao parecidos
     if ((avgSpeed > thresholdSpeed && avgAccGPS > thresholdAcc) || avgAccAccelerometer > thresholdAcc) {
       return ReturnClass(
-          avgAccAccelerometer: avgAccAccelerometer, avgAccGPS: avgAccGPS, avgSpeed: avgSpeed, isStopped: true);
+          avgAccAccelerometer: avgAccAccelerometer, avgAccGPS: avgAccGPS, avgSpeed: avgSpeed, isStopped: false);
     } else {
       return ReturnClass(
-          avgAccAccelerometer: avgAccAccelerometer, avgAccGPS: avgAccGPS, avgSpeed: avgSpeed, isStopped: false);
+          avgAccAccelerometer: avgAccAccelerometer, avgAccGPS: avgAccGPS, avgSpeed: avgSpeed, isStopped: true);
     }
   }
 }
