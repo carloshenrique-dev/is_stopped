@@ -34,6 +34,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool isInMovement = false;
+  List<ReturnClass> returnList = [];
 
   @override
   void initState() {
@@ -77,20 +78,50 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             isInMovement ? const Text('IS IN MOVEMENT') : const Text('IS NOT IN MOVEMENT'),
+            Expanded(
+              child: ListView.builder(
+                itemCount: returnList.length,
+                itemBuilder: (context, index) {
+                  return Row(
+                    children: [
+                      Text('AvgAccel ${returnList[index].avgAccAccelerometer}'),
+                      Text('AvgGPS ${returnList[index].avgAccGPS}'),
+                      Text('AvgSpeed ${returnList[index].avgSpeed}'),
+                      Text('isStopped ${returnList[index].isStopped}'),
+                    ],
+                  );
+                },
+              ),
+            )
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Timer.periodic(const Duration(seconds: 1), (timer) async {
-            if (await MovementDetector().isMoving()) {
-              setState(() {
-                isInMovement = true;
-              });
-            } else {
-              setState(() {
-                isInMovement = false;
-              });
+          const LocationSettings locationSettings = LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 100,
+          );
+
+          Geolocator.getPositionStream(locationSettings: locationSettings).listen((Position? position) async {
+            print(
+              position == null
+                  ? 'Unknown'
+                  : '${position.latitude.toString()}, ${position.longitude.toString()}, ${position.accuracy.toString()}, ${position.speed.toString()}',
+            );
+            if (position != null) {
+              final result = await MovementDetector().isMoving(position);
+              returnList.add(result);
+              print(result);
+              if (result.isStopped) {
+                setState(() {
+                  isInMovement = true;
+                });
+              } else {
+                setState(() {
+                  isInMovement = false;
+                });
+              }
             }
           });
         },
