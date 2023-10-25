@@ -1,72 +1,67 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-// with filter
+import 'dart:math';
+
 import 'package:geolocator/geolocator.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 class MovementDetector {
   List<Position> positions = [];
-  List<AccelerometerEvent> accEvents = [];
-  double thresholdSpeed = 2.0; // km/h
-  double thresholdAcc = 0.5; // m/s^2
+  List<UserAccelerometerEvent> accEvents = [];
+  double thresholdSpeed = 5; // km/h (reduzi o limite de velocidade)
+  double thresholdAcc = 1.0; // m/s^2 (aumentei o limite de aceleração)
   int numMeasurements = 5;
 
   Future<ReturnClass> isMoving(Position position) async {
-    /*Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.best,
-      forceAndroidLocationManager: true,
-      //timeLimit: const Duration(seconds: 5),
-    );*/
-    AccelerometerEvent accEvent = await accelerometerEvents.first;
+    //AccelerometerEvent accEvent = await accelerometerEvents.first;
+    UserAccelerometerEvent userAccelerometerEvent = await userAccelerometerEvents.first;
+    print(userAccelerometerEvent);
 
     positions.add(position);
-    accEvents.add(accEvent);
+    accEvents.add(userAccelerometerEvent);
     if (positions.length > numMeasurements) {
       positions.removeAt(0);
       accEvents.removeAt(0);
     }
 
     if (positions.length < numMeasurements) {
-      return ReturnClass(avgAccAccelerometer: 0.0, avgAccGPS: 0.0, avgSpeed: 0.0, isStopped: false);
+      return ReturnClass(avgAccAccelerometer: 0.0, avgSpeed: 0.0, avgAccGPS: 0.0, isStopped: false);
     }
 
-    double avgSpeed = positions.map((p) => p.speed).reduce((a, b) => a + b) / numMeasurements * 3.6; // m/s to km/h
-    double avgAccGPS = positions.map((p) => p.speed).reduce((a, b) => a - b) /
-        positions.first.timestamp!.difference(positions.last.timestamp!).inSeconds *
-        3.6; // m/s^2 to km/h^2
+    double avgSpeed = positions.map((p) => p.speed).reduce((a, b) => a + b) / numMeasurements * 3.6; // m/s para km/h
 
-    // Apply moving average filter to accelerometer data
-    double avgAccAccelerometer = accEvents.map((a) => a.x + a.y + a.z).reduce((a, b) => a + b) / numMeasurements;
+    double avgAccGPS = (positions.last.speed - positions[3].speed) /
+        positions.last.timestamp!.difference(positions[3].timestamp!).inSeconds; // m/s^2 para km/h^2
 
-    print(avgSpeed);
-    print(avgAccGPS);
-    print(avgAccAccelerometer);
+    // Calcular a aceleração média usando os dados do acelerômetro
+    double avgAccAccelerometer =
+        accEvents.map((a) => sqrt((a.x * a.x + a.y * a.y + a.z * a.z))).reduce((a, b) => a + b) / numMeasurements;
 
-    //comparar se em condicoes normais as medidas de acelerometro e speed vindo do gps estao parecidos
-    if ((avgSpeed > thresholdSpeed && avgAccGPS > thresholdAcc) || avgAccAccelerometer > thresholdAcc) {
+    // Comparar os valores de velocidade e aceleração com os limiares
+    if (avgSpeed > thresholdSpeed && avgAccGPS > thresholdAcc && avgAccAccelerometer > thresholdAcc) {
+      // || avgAccAccelerometer > thresholdAcc) {
       return ReturnClass(
-          avgAccAccelerometer: avgAccAccelerometer, avgAccGPS: avgAccGPS, avgSpeed: avgSpeed, isStopped: false);
+          avgAccAccelerometer: avgAccAccelerometer, avgSpeed: avgSpeed, avgAccGPS: avgAccGPS, isStopped: false);
     } else {
       return ReturnClass(
-          avgAccAccelerometer: avgAccAccelerometer, avgAccGPS: avgAccGPS, avgSpeed: avgSpeed, isStopped: true);
+          avgAccAccelerometer: avgAccAccelerometer, avgSpeed: avgSpeed, avgAccGPS: avgAccGPS, isStopped: true);
     }
   }
 }
 
 class ReturnClass {
   final double avgSpeed;
-  final double avgAccGPS;
   final double avgAccAccelerometer;
+  final double avgAccGPS;
   final bool isStopped;
 
   ReturnClass({
     required this.avgSpeed,
-    required this.avgAccGPS,
     required this.avgAccAccelerometer,
     required this.isStopped,
+    required this.avgAccGPS,
   });
 
   @override
   String toString() {
-    return 'ReturnClass(avgSpeed: $avgSpeed, avgAccGPS: $avgAccGPS, avgAccAccelerometer: $avgAccAccelerometer, isStopped: $isStopped)';
+    return 'ReturnClass(avgSpeed: $avgSpeed, avgAccAccelerometer: $avgAccAccelerometer, avgAccGPS: $avgAccGPS, isStopped: $isStopped)';
   }
 }
